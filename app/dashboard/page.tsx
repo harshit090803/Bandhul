@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
+import LogoutButton from "@/components/auth/LogoutButton";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,60 +15,91 @@ export default async function DashboardPage() {
   }
 
   const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name, email")
-    .eq("id", user.id)
-    .single();
+  .from("profiles")
+  .select("display_name, email")
+  .eq("id", user.id)
+  .single();
+
+  const displayName =
+    profile?.display_name ||
+    user.user_metadata?.display_name ||
+    "Bandhul Member";
+
+  const email =
+    profile?.email ||
+    user.email ||
+    "";
 
   return (
-    <main className="min-h-screen bg-gray-50 px-6 py-12 text-gray-900">
-      <div className="mx-auto max-w-5xl">
+    <main className="min-h-screen bg-gray-50 text-gray-900">
+      <header className="border-b bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <div>
+            <h1 className="text-xl font-bold">
+              Bandhul Gotra
+            </h1>
+
+            <p className="text-sm text-gray-500">
+              Family & Genealogy
+            </p>
+          </div>
+
+          <LogoutButton />
+        </div>
+      </header>
+
+      <section className="mx-auto max-w-6xl px-6 py-12">
         <div className="rounded-2xl bg-white p-8 shadow-sm">
           <p className="text-sm text-gray-500">
             Welcome to Bandhul Gotra
           </p>
 
-          <h1 className="mt-2 text-4xl font-bold">
-            {profile?.display_name || "Bandhul Member"}
-          </h1>
+          <h2 className="mt-2 text-4xl font-bold">
+            {displayName}
+          </h2>
 
           <p className="mt-2 text-gray-600">
-            {profile?.email || user.email}
+            {email}
           </p>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl border p-6">
-              <h2 className="font-semibold">
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            <a
+              href="/tree"
+              className="rounded-xl border p-6 transition hover:bg-gray-50"
+            >
+              <h3 className="text-lg font-semibold">
                 Family Tree
-              </h2>
+              </h3>
 
               <p className="mt-2 text-sm text-gray-600">
-                Explore the Bandhul family tree.
+                Explore our family genealogy.
               </p>
-            </div>
+            </a>
 
-            <div className="rounded-xl border p-6">
-              <h2 className="font-semibold">
+            <Link href="/dashboard/family" className="rounded-xl border p-6 transition hover:bg-gray-50">
+              <h3 className="text-lg font-semibold">
                 Family Members
-              </h2>
-
+              </h3>
               <p className="mt-2 text-sm text-gray-600">
                 Add and manage family members.
               </p>
-            </div>
+            </Link>
 
-            <div className="rounded-xl border p-6">
-              <h2 className="font-semibold">
+            <a
+              href="/dashboard/contributions"
+              className="rounded-xl border p-6 transition hover:bg-gray-50"
+            >
+              <h3 className="text-lg font-semibold">
                 Contributions
-              </h2>
+              </h3>
 
               <p className="mt-2 text-sm text-gray-600">
-                View your contributions.
+                See changes you have contributed.
               </p>
-            </div>
+            </a>
           </div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
