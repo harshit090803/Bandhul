@@ -225,7 +225,7 @@ export default async function FamilyPage() {
               </p>
 
               <Link
-                href="/dashboard/family/add"
+                href="/dashboard/family/add-member"
                 className="bandhul-button mt-7"
               >
                 Add a Family Member
