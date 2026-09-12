@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bandhul Gotra
 
-## Getting Started
+A collaborative digital family archive and genealogy platform for preserving the history, relationships, stories, and legacy of the Bandhul Gotra family.
 
-First, run the development server:
+The project is designed to grow across generations while keeping historical family information simple to record. A family member does not need to know exact birth or death dates, biographies, or other details to create a valid genealogical record.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Overview
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Bandhul Gotra is a family genealogy website where registered family members can collaboratively build and maintain a shared family archive.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The system separates:
 
-## Learn More
+- **User accounts** — people who can log into the website
+- **Person records** — genealogical records representing family members, including ancestors who never had an account
 
-To learn more about Next.js, take a look at the following resources:
+This distinction allows the archive to represent historical generations even when very little information is known about them.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+For example, a deceased ancestor can simply be recorded as:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```text
+Ram Prasad Bandhul
+Status: Deceased
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Relationship: Father of Harish Bandhul
