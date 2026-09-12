@@ -25,6 +25,10 @@ export default function AddFamilyMemberPage() {
   const [occupation, setOccupation] = useState("");
   const [biography, setBiography] = useState("");
 
+  // Invitation details
+  const [email, setEmail] = useState("");
+  const [sendInvitation, setSendInvitation] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -43,6 +47,27 @@ export default function AddFamilyMemberPage() {
       return;
     }
 
+    // Invitation is only possible for living people.
+    if (lifeStatus === "ALIVE" && sendInvitation) {
+      if (!email.trim()) {
+        setMessage(
+          "Please enter an email address before sending the invitation."
+        );
+        setLoading(false);
+        return;
+      }
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailPattern.test(email.trim())) {
+        setMessage("Please enter a valid email address.");
+        setLoading(false);
+        return;
+      }
+    }
+
+    // A deceased person should not have a date of death requirement,
+    // but if provided, it is still stored.
     const { data: person, error } = await supabase
       .from("people")
       .insert({
@@ -68,13 +93,13 @@ export default function AddFamilyMemberPage() {
       .select()
       .single();
 
-    if (error) {
-      setMessage(error.message);
+    if (error || !person) {
+      setMessage(error?.message ?? "Unable to add this family member.");
       setLoading(false);
       return;
     }
 
-    // Record the contribution
+    // Record the contribution.
     const { error: contributionError } = await supabase
       .from("contributions")
       .insert({
@@ -99,13 +124,53 @@ export default function AddFamilyMemberPage() {
       );
     }
 
+    // Send invitation only when:
+    // 1. Person is alive
+    // 2. User selected the invitation option
+    if (lifeStatus === "ALIVE" && sendInvitation) {
+      try {
+        const invitationResponse = await fetch("/api/invitations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            personId: person.id,
+            email: email.trim().toLowerCase(),
+          }),
+        });
+
+        const invitationResult = await invitationResponse.json();
+
+        if (!invitationResponse.ok) {
+          // The person has already been safely created.
+          // Do not submit the form again, because that could create
+          // a duplicate person.
+          setMessage(
+            `Family member was added successfully, but the invitation could not be sent: ${
+              invitationResult.error ?? "Unknown error"
+            }`
+          );
+          setLoading(false);
+          return;
+        }
+      } catch (invitationError) {
+        console.error("Invitation request failed:", invitationError);
+
+        setMessage(
+          "Family member was added successfully, but the invitation could not be sent. Please try the invitation again from the family member's record."
+        );
+        setLoading(false);
+        return;
+      }
+    }
+
     router.push(`/dashboard/family/${person.id}`);
     router.refresh();
   }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#321d1d]">
-
       {/* Background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(176,138,69,0.28),transparent_35%),radial-gradient(circle_at_85%_85%,rgba(100,31,43,0.85),transparent_45%),#321d1d]" />
 
@@ -295,7 +360,14 @@ export default function AddFamilyMemberPage() {
                     <select
                       id="lifeStatus"
                       value={lifeStatus}
-                      onChange={(e) => setLifeStatus(e.target.value)}
+                      onChange={(e) => {
+                        setLifeStatus(e.target.value);
+
+                        // Invitations are only applicable to living people.
+                        if (e.target.value !== "ALIVE") {
+                          setSendInvitation(false);
+                        }
+                      }}
                       className="w-full rounded-xl border border-[#dfd5c8] bg-white px-4 py-3 text-sm text-[#321d1d] outline-none transition focus:border-[#641f2b] focus:ring-2 focus:ring-[#641f2b]/10"
                     >
                       <option value="UNKNOWN">
@@ -373,6 +445,85 @@ export default function AddFamilyMemberPage() {
                   </p>
                 </div>
               </section>
+
+              {/* ================= INVITATION ================= */}
+              {lifeStatus === "ALIVE" && (
+                <>
+                  {/* Divider */}
+                  <div className="flex items-center gap-4">
+                    <div className="h-px flex-1 bg-[#dfd5c8]" />
+                    <span className="text-xs text-[#b08a45]">✦</span>
+                    <div className="h-px flex-1 bg-[#dfd5c8]" />
+                  </div>
+
+                  <section>
+                    <div className="mb-4">
+                      <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#b08a45]">
+                        Connection
+                      </p>
+
+                      <h2 className="mt-1 font-serif text-xl text-[#321d1d]">
+                        Invite This Family Member
+                      </h2>
+                    </div>
+
+                    <div className="rounded-2xl border border-[#b08a45]/30 bg-[#b08a45]/10 p-5">
+
+                      <label className="flex cursor-pointer items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={sendInvitation}
+                          onChange={(e) =>
+                            setSendInvitation(e.target.checked)
+                          }
+                          className="mt-1 h-4 w-4 rounded border-[#b08a45] text-[#641f2b] focus:ring-[#641f2b]"
+                        />
+
+                        <span>
+                          <span className="block text-sm font-semibold text-[#321d1d]">
+                            Send a Bandhul invitation
+                          </span>
+
+                          <span className="mt-1 block text-xs leading-5 text-[#746b63]">
+                            Send this family member a secure invitation
+                            so they can create their own Bandhul account
+                            and access their family record.
+                          </span>
+                        </span>
+                      </label>
+
+                      {sendInvitation && (
+                        <div className="mt-5">
+                          <label
+                            htmlFor="email"
+                            className="mb-2 block text-sm font-semibold text-[#321d1d]"
+                          >
+                            Email Address *
+                          </label>
+
+                          <input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required={sendInvitation}
+                            placeholder="family.member@example.com"
+                            autoComplete="email"
+                            className="w-full rounded-xl border border-[#dfd5c8] bg-white px-4 py-3 text-sm text-[#321d1d] outline-none transition placeholder:text-[#9b9188] focus:border-[#641f2b] focus:ring-2 focus:ring-[#641f2b]/10"
+                          />
+
+                          <p className="mt-2 text-xs leading-5 text-[#746b63]">
+                            They will receive a secure invitation link and
+                            choose their own password. We never send
+                            temporary passwords by email.
+                          </p>
+                        </div>
+                      )}
+
+                    </div>
+                  </section>
+                </>
+              )}
 
               {/* Divider */}
               <div className="flex items-center gap-4">
@@ -491,7 +642,7 @@ export default function AddFamilyMemberPage() {
                 </div>
               </section>
 
-              {/* Error */}
+              {/* Message */}
               {message && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
                   {message}
@@ -514,7 +665,9 @@ export default function AddFamilyMemberPage() {
                   className="bandhul-button w-full disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loading
-                    ? "Preserving Family Record..."
+                    ? sendInvitation && lifeStatus === "ALIVE"
+                      ? "Adding Member & Sending Invitation..."
+                      : "Preserving Family Record..."
                     : "Add to Family Archive"}
                 </button>
 
