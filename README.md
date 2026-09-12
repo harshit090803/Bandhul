@@ -1,7 +1,3 @@
-Bilkul bhai. 😎 Ye raha **`README.md`** for the current Bandhul Gotra project — architecture, features, setup, database, routes, and future roadmap sab documented hai.
-
-Create/replace:
-
 ```text
 README.md
 ```
