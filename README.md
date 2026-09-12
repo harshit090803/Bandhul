@@ -1,10 +1,3 @@
-```text
-README.md
-```
-
-with:
-
-````md
 # Bandhul Gotra
 
 A collaborative digital family archive and genealogy platform for preserving the history, relationships, stories, and legacy of the Bandhul Gotra family.
